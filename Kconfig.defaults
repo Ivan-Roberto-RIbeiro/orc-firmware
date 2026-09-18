@@ -1,0 +1,54 @@
+#
+# Copyright (c) 2026 Tiresias Firmware Team
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+config REBOOT
+	default y
+
+config MAIN_THREAD_PRIORITY
+	default 10
+
+config MAIN_STACK_SIZE
+	default 8192
+
+config SYSTEM_WORKQUEUE_STACK_SIZE
+	default 2048
+
+config THREAD_NAME
+	default y
+
+config RESET_ON_FATAL_ERROR
+	default n
+
+config BT
+	default y
+
+config SENSOR
+	default y
+
+config NRFX_I2S
+	default y
+
+config NRFX_CLOCK
+	default y
+
+config I2C
+	default y
+
+choice LIBC_IMPLEMENTATION
+	default NEWLIB_LIBC
+endchoice
+
+config FPU
+	default y
+
+config FPU_SHARING
+	default y
+
+config SPI
+	default y
+
+config ADC
+	default y

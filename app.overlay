@@ -1,0 +1,102 @@
+/*
+ * DeviceTree Overlay para o projeto Tiresias (nRF5340 Audio DK)
+ * Configuracao:
+ * - I2C1: IMU BMI270 (Endereco 0x68) com IRQ no pino P1.14 para Pitch/Roll a 50 Hz
+ * - SAADC: 4 canais para amostragem a 2.500 Hz (2.5 kHz):
+ *     - Canal 0: EMG 1 (AD8232 #1)              -> AIN1 (P0.04)
+ *     - Canal 1: EMG 2 (AD8232 #2)              -> AIN2 (P0.05)
+ *     - Canal 2: Mic 1 (Conector P2 Line-In)    -> AIN4 (P0.06)
+ *     - Canal 3: Mic 2 (Microfone Embutido)     -> AIN5 (P0.07)
+ */
+
+#include <zephyr/dt-bindings/adc/nrf-saadc.h>
+
+/ {
+	chosen {
+		zephyr,sensor-i2c = &i2c1;
+	};
+
+	aliases {
+		imu-dev = &bmi270;
+		adc-dev = &adc;
+	};
+};
+
+/* -------------------------------------------------------------------------
+ * Barramento I2C1 - Conexao do IMU Bosch BMI270 (Fast Mode 400 kHz)
+ * Pinos SDA e SCL: Padrao da nRF5340 Audio DK (P1.02 e P1.03)
+ * Pino de Interrupcao IRQ (INT1): P1.14
+ * ------------------------------------------------------------------------- */
+&i2c1 {
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+	zephyr,concat-buf-size = <257>;
+
+	bmi270: bmi270@68 {
+		compatible = "bosch,bmi270";
+		reg = <0x68>;
+		/* Declaramos o P1.14 duas vezes para cobrir o INT1 e o INT2 */
+		irq-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>,
+					<&gpio1 14 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
+};
+
+/* -------------------------------------------------------------------------
+ * SAADC - 4 Canais Analogicos (2x EMG + 2x Microfones)
+ * Resolucao: 12-bit com referencia interna (0.6V) e ganho 1/6 (Escala 0-3.6V)
+ * Mapeamento nRF5340 Audio DK:
+ * - P0.04 = AIN1
+ * - P0.05 = AIN2
+ * - P0.06 = AIN4
+ * - P0.07 = AIN5
+ * ------------------------------------------------------------------------- */
+&adc {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	/* Canal 0: EMG 1 (AD8232 #1) -> P0.04 (AIN1) */
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN1>; /* P0.04 */
+		zephyr,resolution = <12>;
+	};
+
+	/* Canal 1: EMG 2 (AD8232 #2) -> P0.05 (AIN2) */
+	channel@1 {
+		reg = <1>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN2>; /* P0.05 */
+		zephyr,resolution = <12>;
+	};
+
+	/* Canal 2: Mic 1 (Conector P2 Line-In / Audio PC) -> P0.06 (AIN4) */
+	channel@2 {
+		reg = <2>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN4>; /* P0.06 */
+		zephyr,resolution = <12>;
+	};
+
+	/* Canal 3: Mic 2 (Microfone Embutido / On-board MEMS Mic) -> P0.07 (AIN5) */
+	channel@3 {
+		reg = <3>;
+		zephyr,gain = "ADC_GAIN_1_6";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN5>; /* P0.07 */
+		zephyr,resolution = <12>;
+	};
+};
+
+&i2s0 {
+    status = "okay";
+};
